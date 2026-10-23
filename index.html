@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matriz Syndex WhatsApp</title>
+<meta name="description" content="Gerador da foto de grupo de WhatsApp Syndex x cliente.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: gerador no topo (controles à esquerda, prévia redonda à direita), depois matriz, especificações e prompt do time */
+:root {
+  --bg: #f4f7fc;
+  --surface: #ffffff;
+  --fg: #14254d;
+  --muted: #5a6a8c;
+  --line: #d9e1ef;
+  --navy: #1b3f8c;
+  --green: #4e9c4d;
+  --drop: #eef3fb;
+  --btn-bg: #1b3f8c;
+  --btn-bg-hover: #163474;
+  --btn-fg: #ffffff;
+  --warn: #b4531a;
+  --display: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1426; --surface: #141d34; --fg: #e6ecf8; --muted: #9aa8c6;
+    --line: #26324f; --navy: #8fb0f2; --green: #7cc77b; --drop: #18233f;
+    --btn-bg: #3b64c4; --btn-bg-hover: #4a74d6; --btn-fg: #ffffff; --warn: #f0a070;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1426; --surface: #141d34; --fg: #e6ecf8; --muted: #9aa8c6;
+  --line: #26324f; --navy: #8fb0f2; --green: #7cc77b; --drop: #18233f;
+  --btn-bg: #3b64c4; --btn-bg-hover: #4a74d6; --btn-fg: #ffffff; --warn: #f0a070;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body);
+  font-size: 15px; line-height: 1.55;
+}
+.wrap {
+  max-width: 980px; margin: 0 auto;
+  padding-block: 36px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 40px;
+}
+header { display: grid; gap: 8px; max-width: 62ch; }
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--green); font-weight: 500;
+}
+h1 {
+  font-family: var(--display); font-weight: 800; font-size: clamp(28px, 4.4vw, 40px);
+  line-height: 1.1; margin: 0; color: var(--navy); text-wrap: balance;
+}
+header p { margin: 0; color: var(--muted); }
+h2 { font-family: var(--display); font-size: 18px; font-weight: 700; margin: 0; color: var(--fg); }
+code { font-family: var(--mono); font-size: 13px; }
+
+/* ---------- Gerador ---------- */
+.gen {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px;
+  padding: 24px;
+}
+.controls { display: grid; gap: 18px; align-content: start; min-width: 0; }
+.drop {
+  border: 2px dashed var(--line); border-radius: 12px; background: var(--drop);
+  padding: 22px 18px; display: grid; gap: 10px; justify-items: center; text-align: center;
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.drop:hover, .drop.over { border-color: var(--btn-bg); }
+.drop:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.drop strong { font-size: 16px; }
+.drop span { color: var(--muted); font-size: 13px; }
+.drop .thumb {
+  max-width: 100%; height: 56px; object-fit: contain; display: block;
+  background: repeating-conic-gradient(var(--line) 0 25%, transparent 0 50%) 0 0 / 14px 14px;
+  border-radius: 6px; padding: 4px;
+}
+.field { display: grid; gap: 6px; }
+.field label, .field .label { font-size: 13px; color: var(--muted); font-weight: 700; }
+.field input[type="text"] {
+  font: 500 15px var(--body); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; width: 100%;
+  box-sizing: border-box;
+}
+.field input[type="text"]:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label {
+  font-size: 13px; font-weight: 700; color: var(--fg); border: 1px solid var(--line);
+  border-radius: 999px; padding: 7px 14px; cursor: pointer; background: var(--bg);
+}
+.seg input:checked + label { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-fg); }
+.seg input:focus-visible + label { outline: 2px solid var(--green); outline-offset: 2px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn {
+  font: 700 15px var(--body); color: var(--btn-fg); background: var(--btn-bg);
+  border: 0; border-radius: 9px; padding: 12px 20px; cursor: pointer;
+}
+.btn:hover { background: var(--btn-bg-hover); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.status { margin: 0; font-size: 13px; color: var(--muted); min-height: 1.4em; }
+.status.ok { color: var(--green); }
+.status.warn { color: var(--warn); }
+.hint { margin: 0; font-size: 13px; color: var(--muted); }
+
+.preview { display: grid; gap: 12px; justify-items: center; align-content: start; min-width: 0; }
+.preview .tag {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted);
+}
+.preview .tag.waiting { color: var(--green); }
+.circle-out {
+  width: min(100%, 380px); aspect-ratio: 1; max-width: 100%; border-radius: 50%;
+  display: block; border: 1px solid var(--line); background: var(--bg);
+}
+.square-row { display: flex; gap: 12px; align-items: center; }
+.square-out { width: 88px; height: 88px; display: block; border: 1px solid var(--line); }
+.square-row p { margin: 0; font-size: 12px; color: var(--muted); max-width: 26ch; }
+
+/* ---------- Matriz e especificações ---------- */
+.pair { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px; align-items: start; }
+figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
+figure img {
+  width: 100%; max-width: 100%; aspect-ratio: 1; object-fit: cover; display: block;
+  border: 1px solid var(--line); background: var(--surface);
+}
+figcaption { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; }
+figcaption b { font-weight: 700; }
+figcaption span { font-family: var(--mono); color: var(--muted); font-size: 12px; }
+
+.specs {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 20px 22px; display: grid; gap: 12px;
+}
+dl { margin: 0; display: grid; grid-template-columns: minmax(140px, 220px) 1fr; }
+dt, dd { padding: 10px 0; border-top: 1px solid var(--line); margin: 0; }
+dt:first-of-type, dd:first-of-type { border-top: 0; }
+dt { color: var(--muted); font-size: 13px; padding-right: 16px; }
+dd { min-width: 0; }
+.swatch {
+  display: inline-block; width: 12px; height: 12px; border-radius: 3px;
+  vertical-align: -1px; margin-right: 6px; border: 1px solid var(--line);
+}
+
+/* ---------- Prompt do time ---------- */
+.team { display: grid; gap: 18px; }
+.team-head { display: grid; gap: 4px; }
+.team-head p { margin: 0; color: var(--muted); max-width: 62ch; }
+.steps { margin: 0; padding-left: 22px; display: grid; gap: 8px; max-width: 70ch; }
+.steps li::marker { color: var(--green); font-weight: 700; font-family: var(--mono); }
+.prompt-box {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  overflow: hidden; min-width: 0;
+}
+.prompt-bar {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 10px 14px 10px 18px; border-bottom: 1px solid var(--line);
+}
+.prompt-bar span {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+}
+.prompt-bar .btn { font-size: 14px; padding: 9px 16px; }
+#prompt-text {
+  margin: 0; padding: 18px; font-family: var(--mono); font-size: 13px; line-height: 1.6;
+  white-space: pre-wrap; word-break: break-word; color: var(--fg);
+}
+#prompt-text:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+.copy-status { margin: 0; padding: 0 18px 14px; font-size: 13px; color: var(--green); }
+.copy-status:empty { display: none; }
+
+@media (max-width: 720px) {
+  .gen { grid-template-columns: 1fr; padding: 18px; }
+  .preview { order: -1; }
+  .pair { grid-template-columns: 1fr; }
+  dl { grid-template-columns: 1fr; }
+  dd { border-top: 0; padding-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .drop { transition: none; } }
+
+html { color-scheme: light; }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Syndex · foto de grupo</div>
+    <h1>Matriz Syndex para grupos de WhatsApp</h1>
+    <p>Envie o logo da outra empresa e a foto do grupo sai pronta, com o fundo e o logo da Syndex fixos.</p>
+  </header>
+
+  <!-- ===== Gerador ===== -->
+  <section class="gen" aria-labelledby="gen-title">
+    <div class="controls">
+      <h2 id="gen-title">Gerador automático</h2>
+
+      <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="drop-help">
+        <img class="thumb" id="logo-thumb" alt="Logo carregado" hidden>
+        <strong id="drop-title">Enviar logo da empresa</strong>
+        <span id="drop-help">Clique para escolher, arraste a imagem aqui ou cole com Ctrl+V. PNG, JPG ou print do site.</span>
+        <input type="file" id="logo-file" accept="image/*" hidden>
+      </div>
+
+      <div class="field">
+        <label for="cliente-nome">Nome do cliente (para o arquivo)</label>
+        <input type="text" id="cliente-nome" placeholder="Ex.: nome da empresa" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <span class="label" id="cor-label">Cor do logo</span>
+        <div class="seg" role="radiogroup" aria-labelledby="cor-label">
+          <input type="radio" name="cor" id="cor-auto" value="auto" checked><label for="cor-auto">Automático</label>
+          <input type="radio" name="cor" id="cor-original" value="original"><label for="cor-original">Cores originais</label>
+          <input type="radio" name="cor" id="cor-navy" value="navy"><label for="cor-navy">Azul Syndex</label>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn" id="salvar" disabled>Salvar PNG 640×640</button>
+        <button type="button" class="btn ghost" id="trocar">Trocar logo</button>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite">Carregando a matriz…</p>
+      <p class="hint" id="save-hint" hidden>Para salvar: toque e segure na imagem quadrada ao lado (ou botão direito → Salvar imagem).</p>
+    </div>
+
+    <div class="preview">
+      <span class="tag waiting" id="preview-tag">Matriz · aguardando o logo</span>
+      <img class="circle-out" id="out-circle" src="matriz/Matriz_Syndex_Base.png" alt="Prévia redonda da foto do grupo">
+      <div class="square-row">
+        <img class="square-out" id="out-square" src="matriz/Matriz_Syndex_Base.png" alt="Arquivo final quadrado 640 por 640">
+        <p>Arquivo final quadrado, 640×640 px. O WhatsApp recorta em círculo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Matriz ===== -->
+  <section class="pair" aria-label="Matriz e especificações">
+    <figure>
+      <img src="matriz/Matriz_Syndex_Base.png" alt="Matriz: fundo azul claro com divisor e logo Syndex, lado esquerdo livre">
+      <figcaption><b>Matriz base</b><span>1254 × 1254 px</span></figcaption>
+    </figure>
+
+  <div class="specs" role="group" aria-labelledby="spec-title">
+    <h2 id="spec-title">Especificações</h2>
+    <dl>
+      <dt>Arquivo final</dt>
+      <dd>PNG quadrado, <code>640 × 640 px</code> (tamanho da foto de perfil do WhatsApp)</dd>
+      <dt>Área do logo do cliente</dt>
+      <dd>Até <code>500 × 140 px</code> na matriz, alinhado à direita a 60 px do divisor e centralizado na altura do logo Syndex</dd>
+      <dt>Recorte redondo</dt>
+      <dd>Os dois logos ficam inteiros dentro do círculo do WhatsApp</dd>
+      <dt>Logo branco ou muito claro</dt>
+      <dd><span class="swatch" style="background:#1b3f8c"></span>Pintado de azul-marinho Syndex, para não sumir no fundo claro</dd>
+      <dt>Logo colorido</dt>
+      <dd>Mantém as cores originais. Fundo branco ou sólido é removido</dd>
+      <dt>Fixo, nunca muda</dt>
+      <dd>Fundo, divisor e logo Syndex com “Diga sim para o sucesso.”</dd>
+    </dl>
+  </div>
+  </section>
+
+  <!-- ===== Prompt do time ===== -->
+  <section class="team" aria-labelledby="team-title">
+    <div class="team-head">
+      <div class="eyebrow">Para o time Syndex</div>
+      <h2 id="team-title">Sem o gerador: prompt para o Claude</h2>
+      <p>O jeito mais rápido é o gerador do topo desta página. Se precisar fazer numa conversa com o Claude, siga estes passos.</p>
+    </div>
+    <ol class="steps">
+      <li>Salve a imagem da <b>matriz base</b> desta página (botão direito ou toque longo → Salvar imagem). Também serve o arquivo <code>Matriz_Syndex_Base.png</code> enviado pelo Tomás.</li>
+      <li>Tenha o logo do cliente em imagem (PNG, JPG ou print do site).</li>
+      <li>Abra uma conversa nova no Claude, anexe <b>as duas imagens</b> e cole o prompt abaixo.</li>
+      <li>Confira o resultado no recorte redondo antes de colocar no grupo.</li>
+    </ol>
+
+    <div class="prompt-box">
+      <div class="prompt-bar">
+        <span>Prompt</span>
+        <button type="button" class="btn" id="copy-prompt">Copiar prompt</button>
+      </div>
+      <pre id="prompt-text" tabindex="0">Crie a foto de perfil de um grupo de WhatsApp entre a Syndex e um cliente.
+
+Anexei 2 imagens:
+1. MATRIZ (Matriz_Syndex_Base.png, 1254 × 1254 px): fundo azul claro, divisor vertical e logo da Syndex à direita. O lado esquerdo está vazio.
+2. LOGO do cliente.
+
+Regras:
+- Não altere nada da matriz. Fundo, divisor e logo da Syndex ficam exatamente como estão. Não recrie nem redesenhe a imagem: edite o próprio arquivo enviado, por código (por exemplo, Python com Pillow).
+- Coloque somente o logo do cliente no lado esquerdo, numa área de até 500 × 140 px, alinhado à direita em x = 603 px (60 px antes do divisor) e com o centro vertical em y = 586 px. Mantenha a proporção do logo.
+- Se o logo tiver fundo branco ou de cor sólida, remova o fundo antes de aplicar.
+- Se o logo for branco ou muito claro, pinte-o de azul-marinho Syndex (#1B3F8C) para não sumir no fundo. Se for colorido, mantenha as cores originais.
+- Não acrescente textos, sombras, molduras ou efeitos.
+- Exporte em PNG quadrado de 640 × 640 px.
+- Antes de entregar, confira que os dois logos ficam inteiros no recorte redondo do WhatsApp e que não sobrou resto de fundo em volta do logo do cliente.
+
+Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
+      <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  // ---- Medidas da matriz (iguais ao script aprovado) ----
+  var MATRIZ_URL = 'matriz/Matriz_Syndex_Base.png';
+  var NAVY = [27, 63, 140];
+  var BOX_RIGHT = 603, BOX_MAX_W = 500, BOX_MAX_H = 140, CENTER_Y = 586, OUT = 640;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var drop = $('drop'), fileIn = $('logo-file'), thumb = $('logo-thumb'), dropTitle = $('drop-title');
+  var nomeIn = $('cliente-nome'), salvarBtn = $('salvar'), trocarBtn = $('trocar');
+  var statusEl = $('status'), hintEl = $('save-hint'), tagEl = $('preview-tag');
+  var outCircle = $('out-circle'), outSquare = $('out-square');
+
+  var matriz = null, logoImg = null, outBlob = null, outUrl = null, downloads;
+
+  function setStatus(msg, kind) {
+    statusEl.textContent = msg;
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+  }
+  function loadImage(src) {
+    return new Promise(function (res, rej) {
+      var im = new Image();
+      im.onload = function () { res(im); };
+      im.onerror = function () { rej(new Error('img')); };
+      im.src = src;
+    });
+  }
+  function canvas(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+  // Redução em etapas para manter o logo nítido
+  function resizeHQ(src, tw, th) {
+    var cur = src, cw = src.width, ch = src.height;
+    while (cw / 2 >= tw && ch / 2 >= th) {
+      var n = canvas(Math.round(cw / 2), Math.round(ch / 2));
+      var nx = n.getContext('2d'); nx.imageSmoothingEnabled = true; nx.imageSmoothingQuality = 'high';
+      nx.drawImage(cur, 0, 0, n.width, n.height);
+      cur = n; cw = n.width; ch = n.height;
+    }
+    var o = canvas(tw, th), ox = o.getContext('2d');
+    ox.imageSmoothingEnabled = true; ox.imageSmoothingQuality = 'high';
+    ox.drawImage(cur, 0, 0, tw, th);
+    return o;
+  }
+
+  function median(arr) { arr.sort(function (a, b) { return a - b; }); return arr[arr.length >> 1]; }
+
+  // Remove fundo sólido, recorta e aplica a regra de cor
+  function prepararLogo(img, modo) {
+    var w = img.naturalWidth, h = img.naturalHeight;
+    var cap = 1600, s = Math.min(1, cap / Math.max(w, h));
+    w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s));
+    var c = canvas(w, h), x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(img, 0, 0, w, h);
+    var d = x.getImageData(0, 0, w, h), p = d.data, n = w * h, i;
+
+    var semAlpha = 0;
+    for (i = 3; i < p.length; i += 4) if (p[i] < 250) semAlpha++;
+    var transparente = semAlpha / n > 0.02;
+
+    if (!transparente) {
+      var k = Math.max(2, Math.floor(Math.min(w, h) / 20)), rs = [], gs = [], bs = [];
+      var cantos = [[0, 0], [w - k, 0], [0, h - k], [w - k, h - k]];
+      cantos.forEach(function (c0) {
+        for (var yy = c0[1]; yy < c0[1] + k; yy++) for (var xx = c0[0]; xx < c0[0] + k; xx++) {
+          var j = (yy * w + xx) * 4; rs.push(p[j]); gs.push(p[j + 1]); bs.push(p[j + 2]);
+        }
+      });
+      var br = median(rs), bg = median(gs), bb = median(bs);
+      for (i = 0; i < p.length; i += 4) {
+        var dr = p[i] - br, dg = p[i + 1] - bg, db = p[i + 2] - bb;
+        var dist = Math.sqrt(dr * dr + dg * dg + db * db);
+        var a = Math.min(1, Math.max(0, (dist - 18) / (60 - 18)));
+        p[i + 3] = Math.round(a * (p[i + 3] / 255) * 255);
+      }
+    }
+
+    // Recorte pelo conteúdo visível
+    var minX = w, minY = h, maxX = -1, maxY = -1, somaL = 0, cont = 0;
+    for (var yy2 = 0; yy2 < h; yy2++) for (var xx2 = 0; xx2 < w; xx2++) {
+      var j2 = (yy2 * w + xx2) * 4, al = p[j2 + 3];
+      if (al > 20) {
+        if (xx2 < minX) minX = xx2; if (xx2 > maxX) maxX = xx2;
+        if (yy2 < minY) minY = yy2; if (yy2 > maxY) maxY = yy2;
+      }
+      if (al > 128) { somaL += (p[j2] + p[j2 + 1] + p[j2 + 2]) / 3; cont++; }
+    }
+    if (maxX < 0) return null;
+    var lum = cont ? somaL / cont : 0;
+    var recolorir = modo === 'navy' || (modo === 'auto' && lum > 215);
+    if (recolorir) {
+      for (i = 0; i < p.length; i += 4) { p[i] = NAVY[0]; p[i + 1] = NAVY[1]; p[i + 2] = NAVY[2]; }
+    }
+    x.putImageData(d, 0, 0);
+    var cw = maxX - minX + 1, ch = maxY - minY + 1;
+    var crop = canvas(cw, ch);
+    crop.getContext('2d').drawImage(c, minX, minY, cw, ch, 0, 0, cw, ch);
+    return { canvas: crop, recolorido: recolorir };
+  }
+
+  function modoAtual() {
+    var r = document.querySelector('input[name="cor"]:checked');
+    return r ? r.value : 'auto';
+  }
+
+  function gerar() {
+    if (!matriz || !logoImg) return;
+    var prep = prepararLogo(logoImg, modoAtual());
+    if (!prep) {
+      setStatus('Não encontrei o logo nessa imagem. Tente um arquivo com o logo mais visível.', 'warn');
+      salvarBtn.disabled = true;
+      return;
+    }
+    var lc = prep.canvas;
+    var s = Math.min(BOX_MAX_W / lc.width, BOX_MAX_H / lc.height);
+    var lw = Math.max(1, Math.round(lc.width * s)), lh = Math.max(1, Math.round(lc.height * s));
+    var logoFit = resizeHQ(lc, lw, lh);
+
+    var base = canvas(matriz.naturalWidth, matriz.naturalHeight), bx = base.getContext('2d');
+    bx.drawImage(matriz, 0, 0);
+    bx.drawImage(logoFit, BOX_RIGHT - lw, CENTER_Y - Math.floor(lh / 2));
+    var final = resizeHQ(base, OUT, OUT);
+
+    final.toBlob(function (blob) {
+      if (!blob) { setStatus('Não consegui montar a imagem. Recarregue a página e tente de novo.', 'warn'); return; }
+      outBlob = blob;
+      if (outUrl) URL.revokeObjectURL(outUrl);
+      outUrl = URL.createObjectURL(blob);
+      outCircle.src = outUrl;
+      outSquare.src = outUrl;
+      salvarBtn.disabled = false;
+      var corMsg = prep.recolorido ? 'Logo pintado de azul Syndex.' : 'Logo com as cores originais.';
+      tagEl.textContent = 'Como aparece no WhatsApp';
+      tagEl.classList.remove('waiting');
+      setStatus('Pronto. ' + corMsg, 'ok');
+    }, 'image/png');
+  }
+
+  function nomeDoArquivo(nome) {
+    return String(nome || '').replace(/\.[a-z0-9]+$/i, '')
+      .replace(/[_\-]+/g, ' ').replace(/\b(logo|logotipo|image|imagem|img)\b/gi, '')
+      .replace(/\s+/g, ' ').trim();
+  }
+
+  function usarArquivo(file) {
+    if (!file || !/^image\//.test(file.type)) {
+      setStatus('Esse arquivo não é uma imagem. Envie o logo em PNG, JPG ou WEBP.', 'warn');
+      return;
+    }
+    var url = URL.createObjectURL(file);
+    loadImage(url).then(function (im) {
+      logoImg = im;
+      thumb.src = url; thumb.hidden = false;
+      dropTitle.textContent = 'Logo carregado';
+      var sugestao = nomeDoArquivo(file.name);
+      if (!nomeIn.value || nomeIn.dataset.auto === '1') {
+        nomeIn.value = /^\d+$/.test(sugestao.replace(/\s/g, '')) ? '' : sugestao;
+        nomeIn.dataset.auto = '1';
+      }
+      gerar();
+    }).catch(function () {
+      setStatus('Não consegui abrir essa imagem. Tente salvar o logo como PNG ou JPG.', 'warn');
+    });
+  }
+
+  // Entradas: clique, teclado, arrastar e colar
+  drop.addEventListener('click', function () { fileIn.click(); });
+  trocarBtn.addEventListener('click', function () { fileIn.click(); });
+  drop.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); }
+  });
+  fileIn.addEventListener('change', function () {
+    if (fileIn.files && fileIn.files[0]) usarArquivo(fileIn.files[0]);
+    fileIn.value = '';
+  });
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+  });
+  drop.addEventListener('drop', function (e) {
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) usarArquivo(f);
+  });
+  document.addEventListener('paste', function (e) {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    var items = (e.clipboardData && e.clipboardData.items) || [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type && items[i].type.indexOf('image/') === 0) {
+        var f = items[i].getAsFile();
+        if (f) { e.preventDefault(); usarArquivo(f); return; }
+      }
+    }
+  });
+  nomeIn.addEventListener('input', function () { nomeIn.dataset.auto = '0'; });
+  document.querySelectorAll('input[name="cor"]').forEach(function (r) { r.addEventListener('change', gerar); });
+
+  // Salvar o PNG
+  salvarBtn.addEventListener('click', function () {
+    if (!outBlob) return;
+    var nome = (nomeIn.value || '').trim().replace(/[\\\/:*?"<>|]+/g, '').replace(/\s+/g, '_');
+    var filename = 'Syndex_' + (nome || 'Cliente') + '_WhatsApp.png';
+    if (!downloads) {
+      if (!noClaude) { hintEl.hidden = false; return; }
+      var a = document.createElement('a');
+      a.href = outUrl; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setStatus('Arquivo salvo: ' + filename, 'ok');
+      return;
+    }
+    salvarBtn.disabled = true;
+    downloads.save({ filename: filename, data: outBlob }).then(function () {
+      setStatus('Arquivo salvo: ' + filename, 'ok');
+    }, function (err) {
+      var code = err && err.code;
+      if (code === 'declined') setStatus('Download cancelado.');
+      else if (code === 'rate_limited') setStatus('Já existe um download aberto. Conclua ou feche e tente de novo.', 'warn');
+      else { hintEl.hidden = false; setStatus('O download não está disponível aqui. Salve pela imagem quadrada.', 'warn'); }
+    }).then(function () { salvarBtn.disabled = false; });
+  });
+
+  // Recurso de download do Claude (quando disponível)
+  var noClaude = !(window.claude && window.claude.use);
+  (noClaude ? Promise.resolve(null) : window.claude.use('downloads'))
+    .then(function (ns) { downloads = ns; if (!ns && !noClaude) hintEl.hidden = false; })
+    .catch(function () { if (!noClaude) hintEl.hidden = false; });
+
+  // Início: carrega só a matriz e espera o logo
+  loadImage(MATRIZ_URL).then(function (im) {
+    matriz = im;
+    if (logoImg) { gerar(); return; } // logo enviado antes da matriz terminar de carregar
+    setStatus('Matriz pronta. Envie o logo da empresa.');
+  }).catch(function () {
+    setStatus('Não consegui carregar a matriz. Recarregue a página.', 'warn');
+  });
+
+  // Copiar prompt
+  var copyBtn = $('copy-prompt'), pre = $('prompt-text'), copyStatus = $('copy-status');
+  function selecionar() {
+    var r = document.createRange(); r.selectNodeContents(pre);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+  copyBtn.addEventListener('click', function () {
+    var falhou = function () {
+      selecionar();
+      copyStatus.textContent = 'Não foi possível copiar sozinho. O texto ficou selecionado: use Ctrl+C (ou Copiar no celular).';
+    };
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) { falhou(); return; }
+      navigator.clipboard.writeText(pre.innerText).then(function () {
+        copyBtn.textContent = 'Copiado';
+        copyStatus.textContent = 'Prompt copiado. Cole na conversa com as duas imagens anexadas.';
+        setTimeout(function () { copyBtn.textContent = 'Copiar prompt'; }, 2200);
+      }, falhou);
+    } catch (e) { falhou(); }
+  });
+})();
+</script>
+</body>
+</html>
