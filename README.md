@@ -8,7 +8,7 @@ O fundo e o logo da Syndex são fixos (a matriz). Só o logo da outra empresa mu
 
 ## Como usar
 
-1. Abra o link acima.
+1. Abra o link acima e escolha o tipo de foto: **Uma empresa por foto** ou **Duas empresas no mesmo grupo**.
 2. Envie um ou vários logos: clique para escolher, arraste as imagens ou cole com Ctrl+V (até 30 por vez).
 3. Cada logo vira uma foto. Confira a prévia redonda de cada uma (é como aparece no WhatsApp).
 4. Ajuste o nome do cliente e a cor do logo, se precisar.
@@ -22,6 +22,7 @@ Tudo roda no navegador. O logo enviado não sai do seu computador.
 |---|---|
 | Arquivo final | PNG quadrado, 640 × 640 px (um por logo) |
 | Logo do cliente | Até 500 × 140 px na matriz (1254 × 1254), alinhado à direita em x = 603 px e centralizado em y = 586 px |
+| Duas empresas no mesmo grupo | Logos empilhados à esquerda, cada um até 480 × 104 px, 40 px entre eles, alinhados à direita em x = 603 px e centralizados em y = 586 px |
 | Logo branco ou muito claro | Pintado de azul-marinho Syndex `#1B3F8C` |
 | Logo colorido | Mantém as cores originais; fundo branco ou sólido é removido |
 | Fixo | Fundo, divisor e logo Syndex com "Diga sim para o sucesso." |
