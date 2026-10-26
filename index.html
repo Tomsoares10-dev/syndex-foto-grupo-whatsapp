@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Matriz Syndex WhatsApp</title>
-<meta name="description" content="Gerador da foto de grupo de WhatsApp Syndex x cliente: um ou vários logos, uma ou duas empresas por foto, PNG 640x640.">
+<meta name="description" content="Gerador da foto de grupo de WhatsApp Syndex x cliente: um ou vários logos, uma ou duas empresas por foto, logo igual ao arquivo, PNG 640x640.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: gerador no topo (controles à esquerda, prévia redonda à direita), depois matriz, especificações e prompt do time */
@@ -147,6 +147,7 @@ code { font-family: var(--mono); font-size: 13px; }
   color: var(--btn-fg); background: var(--btn-bg); border-radius: 999px; padding: 3px 8px;
 }
 .res-controles { display: grid; gap: 10px; }
+.res-controles:empty { display: none; }
 .res-extra { display: flex; flex-wrap: wrap; gap: 8px; }
 .tipo .seg-lg label { font-size: 13px; padding: 8px 14px; }
 .res-note.warn { color: var(--warn); }
@@ -290,10 +291,8 @@ img { max-width: 100%; }
       <dd>Até <code>500 × 140 px</code> na matriz, alinhado à direita a 60 px do divisor e centralizado na altura do logo Syndex</dd>
       <dt>Recorte redondo</dt>
       <dd>Os dois logos ficam inteiros dentro do círculo do WhatsApp</dd>
-      <dt>Logo branco ou muito claro</dt>
-      <dd><span class="swatch" style="background:#1b3f8c"></span>Pintado de azul-marinho Syndex, para não sumir no fundo claro</dd>
-      <dt>Logo colorido</dt>
-      <dd>Mantém as cores originais. Fundo branco ou sólido é removido</dd>
+      <dt>Logo do cliente</dt>
+      <dd>Entra exatamente como no arquivo: mesmas cores e o mesmo fundo. Só a margem vazia em volta é cortada. Para o logo aparecer sem fundo, envie um PNG transparente</dd>
       <dt>Fixo, nunca muda</dt>
       <dd>Fundo, divisor e logo Syndex com “Diga sim para o sucesso.”</dd>
     </dl>
@@ -329,11 +328,10 @@ Regras:
 - Não altere nada da matriz. Fundo, divisor e logo da Syndex ficam exatamente como estão. Não recrie nem redesenhe a imagem: edite o próprio arquivo enviado, por código (por exemplo, Python com Pillow).
 - Coloque somente o logo do cliente no lado esquerdo, numa área de até 500 × 140 px, alinhado à direita em x = 603 px (60 px antes do divisor) e com o centro vertical em y = 586 px. Mantenha a proporção do logo.
 - Se forem duas empresas do mesmo grupo (anexe os dois logos), empilhe-as no lado esquerdo: cada logo em até 480 × 104 px, alinhado à direita em x = 603 px, com 40 px entre eles, e o conjunto centralizado em y = 586 px.
-- Se o logo tiver fundo branco ou de cor sólida, remova o fundo antes de aplicar.
-- Se o logo for branco ou muito claro, pinte-o de azul-marinho Syndex (#1B3F8C) para não sumir no fundo. Se for colorido, mantenha as cores originais.
+- Use o logo exatamente como no arquivo: não troque cores, não pinte, não remova o fundo e não redesenhe. Só corte a margem vazia em volta, deixando uma folga pequena.
 - Não acrescente textos, sombras, molduras ou efeitos.
 - Exporte em PNG quadrado de 640 × 640 px.
-- Antes de entregar, confira que os dois logos ficam inteiros no recorte redondo do WhatsApp e que não sobrou resto de fundo em volta do logo do cliente.
+- Antes de entregar, confira que os dois logos ficam inteiros no recorte redondo do WhatsApp e que o logo do cliente está igual ao arquivo enviado.
 
 Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
       <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
@@ -346,7 +344,6 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
 (function () {
   // ---- Medidas da matriz (iguais ao script aprovado) ----
   var MATRIZ_URL = 'matriz/Matriz_Syndex_Base.png';
-  var NAVY = [27, 63, 140];
   var BOX_RIGHT = 603, CENTER_Y = 586, OUT = 640;
   var UMA = { w: 500, h: 140 };            // uma empresa
   var DUAS = { w: 480, h: 104, gap: 40 };  // duas empresas empilhadas
@@ -394,50 +391,56 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
   }
   function median(arr) { arr.sort(function (a, b) { return a - b; }); return arr[arr.length >> 1]; }
 
-  // Remove fundo sólido, recorta e aplica a regra de cor
-  function prepararLogo(img, modo) {
+  // Logo fiel ao arquivo: não troca cor nem tira fundo. Só corta a margem vazia em volta.
+  function prepararLogo(img) {
     var w = img.naturalWidth, h = img.naturalHeight;
     var cap = 1600, s = Math.min(1, cap / Math.max(w, h));
     w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s));
     var c = canvas(w, h), x = c.getContext('2d', { willReadFrequently: true });
     x.drawImage(img, 0, 0, w, h);
-    var d = x.getImageData(0, 0, w, h), p = d.data, n = w * h, i;
+    var p = x.getImageData(0, 0, w, h).data, n = w * h, i;
 
-    var semAlpha = 0;
-    for (i = 3; i < p.length; i += 4) if (p[i] < 250) semAlpha++;
-    if (semAlpha / n <= 0.02) {
+    var transp = 0;
+    for (i = 3; i < p.length; i += 4) if (p[i] < 250) transp++;
+    var temTransparencia = transp / n > 0.02;
+    var br = 0, bg = 0, bb = 0;
+    if (!temTransparencia) {
       var k = Math.max(2, Math.floor(Math.min(w, h) / 20)), rs = [], gs = [], bs = [];
       [[0, 0], [w - k, 0], [0, h - k], [w - k, h - k]].forEach(function (c0) {
         for (var yy = c0[1]; yy < c0[1] + k; yy++) for (var xx = c0[0]; xx < c0[0] + k; xx++) {
           var j = (yy * w + xx) * 4; rs.push(p[j]); gs.push(p[j + 1]); bs.push(p[j + 2]);
         }
       });
-      var br = median(rs), bg = median(gs), bb = median(bs);
-      for (i = 0; i < p.length; i += 4) {
-        var dr = p[i] - br, dg = p[i + 1] - bg, db = p[i + 2] - bb;
-        var dist = Math.sqrt(dr * dr + dg * dg + db * db);
-        var a = Math.min(1, Math.max(0, (dist - 18) / (60 - 18)));
-        p[i + 3] = Math.round(a * p[i + 3]);
-      }
+      br = median(rs); bg = median(gs); bb = median(bs);
     }
-
-    var minX = w, minY = h, maxX = -1, maxY = -1, somaL = 0, cont = 0;
+    var minX = w, minY = h, maxX = -1, maxY = -1;
     for (var y2 = 0; y2 < h; y2++) for (var x2 = 0; x2 < w; x2++) {
-      var j2 = (y2 * w + x2) * 4, al = p[j2 + 3];
-      if (al > 20) {
+      var j2 = (y2 * w + x2) * 4, conteudo;
+      if (temTransparencia) conteudo = p[j2 + 3] > 8;
+      else {
+        var dr = p[j2] - br, dg = p[j2 + 1] - bg, db = p[j2 + 2] - bb;
+        conteudo = dr * dr + dg * dg + db * db > 40 * 40;
+      }
+      if (conteudo) {
         if (x2 < minX) minX = x2; if (x2 > maxX) maxX = x2;
         if (y2 < minY) minY = y2; if (y2 > maxY) maxY = y2;
       }
-      if (al > 128) { somaL += (p[j2] + p[j2 + 1] + p[j2 + 2]) / 3; cont++; }
     }
     if (maxX < 0) return null;
-    var lum = cont ? somaL / cont : 0;
-    var recolorir = modo === 'navy' || (modo === 'auto' && lum > 215);
-    if (recolorir) for (i = 0; i < p.length; i += 4) { p[i] = NAVY[0]; p[i + 1] = NAVY[1]; p[i + 2] = NAVY[2]; }
-    x.putImageData(d, 0, 0);
+    // folga pequena em volta quando o arquivo tem fundo, para o logo não encostar na borda
+    var folga = temTransparencia ? 0 : Math.round(0.045 * Math.max(maxX - minX + 1, maxY - minY + 1));
+    minX = Math.max(0, minX - folga); minY = Math.max(0, minY - folga);
+    maxX = Math.min(w - 1, maxX + folga); maxY = Math.min(h - 1, maxY + folga);
     var cw = maxX - minX + 1, ch = maxY - minY + 1, crop = canvas(cw, ch);
     crop.getContext('2d').drawImage(c, minX, minY, cw, ch, 0, 0, cw, ch);
-    return { canvas: crop, recolorido: recolorir };
+    // Só avisa (não muda nada): logo branco/muito claro sem fundo some no fundo claro da matriz
+    var claro = false;
+    if (temTransparencia) {
+      var soma = 0, qt = 0;
+      for (i = 0; i < p.length; i += 4) if (p[i + 3] > 128) { soma += (p[i] + p[i + 1] + p[i + 2]) / 3; qt++; }
+      claro = qt > 0 && soma / qt > 215;
+    }
+    return { canvas: crop, claro: claro };
   }
 
   function caber(cv, mw, mh) {
@@ -452,7 +455,7 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
     if (!logos.length) return Promise.resolve({ blob: null, falha: 0 });
     var preps = [];
     for (var i = 0; i < logos.length; i++) {
-      var pr = prepararLogo(logos[i].img, logos[i].modo);
+      var pr = prepararLogo(logos[i].img);
       if (!pr) return Promise.resolve({ blob: null, falha: i });
       preps.push(pr);
     }
@@ -470,7 +473,7 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
     var final = resizeHQ(base, OUT, OUT);
     return new Promise(function (res) {
       final.toBlob(function (blob) {
-        res({ blob: blob, recolorido: preps.map(function (p) { return p.recolorido; }) });
+        res({ blob: blob, claro: preps.map(function (p) { return p.claro; }) });
       }, 'image/png');
     });
   }
@@ -519,33 +522,10 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
     btnTodas.disabled = prontas === 0;
   }
 
-  function segCor(item, idx, rotulo) {
-    var f = document.createElement('div'); f.className = 'field';
-    var lab = document.createElement('span'); lab.className = 'label';
-    lab.id = 'cor-l-' + item.id + '-' + idx; lab.textContent = rotulo;
-    var seg = document.createElement('div'); seg.className = 'seg'; seg.setAttribute('role', 'radiogroup');
-    seg.setAttribute('aria-labelledby', lab.id);
-    [['auto', 'Automático'], ['original', 'Originais'], ['navy', 'Azul Syndex']].forEach(function (o) {
-      var r = document.createElement('input'); r.type = 'radio'; r.name = 'cor-' + item.id + '-' + idx;
-      r.id = 'cor-' + item.id + '-' + idx + '-' + o[0]; r.value = o[0];
-      r.checked = item.logos[idx].modo === o[0];
-      r.addEventListener('change', function () { item.logos[idx].modo = o[0]; gerar(item); });
-      var l = document.createElement('label'); l.htmlFor = r.id; l.textContent = o[1];
-      seg.appendChild(r); seg.appendChild(l);
-    });
-    f.appendChild(lab); f.appendChild(seg);
-    return f;
-  }
-
   // Monta (ou remonta) os controles do card conforme o tipo e quantos logos ele tem
   function montarControles(item) {
     var box = item.el.controles; box.innerHTML = '';
-    if (!item.duas) {
-      box.appendChild(segCor(item, 0, 'Cor do logo'));
-      return;
-    }
-    box.appendChild(segCor(item, 0, 'Cor · empresa de cima'));
-    if (item.logos.length > 1) box.appendChild(segCor(item, 1, 'Cor · empresa de baixo'));
+    if (!item.duas) return;
     var linha = document.createElement('div'); linha.className = 'res-extra';
     if (item.logos.length < 2) {
       var bAdd = document.createElement('button'); bAdd.type = 'button'; bAdd.className = 'btn ghost small';
@@ -614,8 +594,6 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
     results.appendChild(art);
   }
 
-  function textoCor(rec) { return rec ? 'azul Syndex' : 'cores originais'; }
-
   function gerar(item) {
     var minha = ++item.versao;
     item.el.img.classList.add('loading');
@@ -627,7 +605,7 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
         item.el.salvar.disabled = true;
         item.el.note.className = 'res-note warn';
         item.el.note.textContent = (item.duas ? (r.falha === 0 ? 'Logo de cima: ' : 'Logo de baixo: ') : '') +
-          'não encontrei o logo nessa imagem. Tente um arquivo com o logo mais visível.';
+          'a imagem parece vazia. Envie o arquivo do logo.';
         atualizarBarra();
         return;
       }
@@ -642,10 +620,10 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
         item.el.note.className = 'res-note warn';
         item.el.note.textContent = 'Falta o logo da 2ª empresa. Use o botão acima ou envie mais um logo.';
       } else {
-        item.el.note.className = 'res-note';
-        item.el.note.textContent = (item.duas
-          ? 'Cima: ' + textoCor(r.recolorido[0]) + ' · baixo: ' + textoCor(r.recolorido[1])
-          : (r.recolorido[0] ? 'Logo pintado de azul Syndex' : 'Logo com as cores originais')) + '. PNG 640 × 640.';
+        var algumClaro = (r.claro || []).some(Boolean);
+        item.el.note.className = algumClaro ? 'res-note warn' : 'res-note';
+        item.el.note.textContent = (item.duas ? 'Logos iguais aos arquivos' : 'Logo igual ao arquivo') + '. PNG 640 × 640.' +
+          (algumClaro ? ' Atenção: logo branco sem fundo quase some na matriz. Se tiver, envie a versão colorida ou com fundo.' : '');
       }
       atualizarBarra();
     }).catch(function () {
@@ -665,7 +643,7 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
   }
 
   function novoLogo(file) {
-    return { src: URL.createObjectURL(file), img: null, modo: 'auto', nome: nomeDoArquivoOriginal(file.name) };
+    return { src: URL.createObjectURL(file), img: null, nome: nomeDoArquivoOriginal(file.name) };
   }
   function carregarLogos(item) {
     return Promise.all(item.logos.map(function (l) {
