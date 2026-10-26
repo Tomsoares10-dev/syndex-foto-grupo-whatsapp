@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Matriz Syndex WhatsApp</title>
-<meta name="description" content="Gerador da foto de grupo de WhatsApp Syndex x cliente.">
+<meta name="description" content="Gerador da foto de grupo de WhatsApp Syndex x cliente: um ou vários logos, PNG 640x640.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: gerador no topo (controles à esquerda, prévia redonda à direita), depois matriz, especificações e prompt do time */
@@ -63,70 +63,84 @@ header p { margin: 0; color: var(--muted); }
 h2 { font-family: var(--display); font-size: 18px; font-weight: 700; margin: 0; color: var(--fg); }
 code { font-family: var(--mono); font-size: 13px; }
 
-/* ---------- Gerador ---------- */
+/* ---------- Gerador (um ou vários logos) ---------- */
 .gen {
   background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px;
-  padding: 24px;
+  display: grid; gap: 18px; padding: 24px; min-width: 0;
 }
-.controls { display: grid; gap: 18px; align-content: start; min-width: 0; }
+.gen-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.gen-head .size { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .drop {
   border: 2px dashed var(--line); border-radius: 12px; background: var(--drop);
-  padding: 22px 18px; display: grid; gap: 10px; justify-items: center; text-align: center;
+  padding: 22px 18px; display: grid; gap: 8px; justify-items: center; text-align: center;
   cursor: pointer; transition: border-color .15s, background .15s;
 }
 .drop:hover, .drop.over { border-color: var(--btn-bg); }
 .drop:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .drop strong { font-size: 16px; }
-.drop span { color: var(--muted); font-size: 13px; }
-.drop .thumb {
-  max-width: 100%; height: 56px; object-fit: contain; display: block;
-  background: repeating-conic-gradient(var(--line) 0 25%, transparent 0 50%) 0 0 / 14px 14px;
-  border-radius: 6px; padding: 4px;
+.drop span { color: var(--muted); font-size: 13px; max-width: 52ch; }
+.batch-bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
 }
-.field { display: grid; gap: 6px; }
-.field label, .field .label { font-size: 13px; color: var(--muted); font-weight: 700; }
-.field input[type="text"] {
-  font: 500 15px var(--body); color: var(--fg); background: var(--bg);
-  border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; width: 100%;
-  box-sizing: border-box;
-}
-.field input[type="text"]:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
-.seg { display: flex; flex-wrap: wrap; gap: 6px; }
-.seg input { position: absolute; opacity: 0; pointer-events: none; }
-.seg label {
-  font-size: 13px; font-weight: 700; color: var(--fg); border: 1px solid var(--line);
-  border-radius: 999px; padding: 7px 14px; cursor: pointer; background: var(--bg);
-}
-.seg input:checked + label { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-fg); }
-.seg input:focus-visible + label { outline: 2px solid var(--green); outline-offset: 2px; }
+.batch-bar strong { font-size: 15px; }
+.batch-bar span { font-size: 13px; color: var(--muted); }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .btn {
   font: 700 15px var(--body); color: var(--btn-fg); background: var(--btn-bg);
-  border: 0; border-radius: 9px; padding: 12px 20px; cursor: pointer;
+  border: 0; border-radius: 9px; padding: 12px 20px; cursor: pointer; min-height: 44px;
 }
 .btn:hover { background: var(--btn-bg-hover); }
 .btn:disabled { opacity: .5; cursor: default; }
 .btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.btn.small { font-size: 14px; padding: 9px 14px; min-height: 40px; }
 .status { margin: 0; font-size: 13px; color: var(--muted); min-height: 1.4em; }
 .status.ok { color: var(--green); }
 .status.warn { color: var(--warn); }
 .hint { margin: 0; font-size: 13px; color: var(--muted); }
 
-.preview { display: grid; gap: 12px; justify-items: center; align-content: start; min-width: 0; }
-.preview .tag {
-  font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
-  color: var(--muted);
+.results { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.empty {
+  grid-column: 1 / -1; display: grid; justify-items: center; gap: 10px; padding: 8px 0 4px;
 }
-.preview .tag.waiting { color: var(--green); }
-.circle-out {
-  width: min(100%, 380px); aspect-ratio: 1; max-width: 100%; border-radius: 50%;
-  display: block; border: 1px solid var(--line); background: var(--bg);
+.empty img { width: min(100%, 260px); aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--line); opacity: .9; }
+.empty p { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--green); }
+.res {
+  display: grid; gap: 12px; align-content: start; min-width: 0;
+  border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: var(--surface);
 }
-.square-row { display: flex; gap: 12px; align-items: center; }
-.square-out { width: 88px; height: 88px; display: block; border: 1px solid var(--line); }
-.square-row p { margin: 0; font-size: 12px; color: var(--muted); max-width: 26ch; }
+.res-circle {
+  width: 100%; max-width: 100%; aspect-ratio: 1; border-radius: 50%; display: block;
+  border: 1px solid var(--line); background: var(--bg);
+}
+.res-circle.loading { opacity: .45; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field label, .field .label { font-size: 12px; color: var(--muted); font-weight: 700; }
+.field input[type="text"] {
+  font: 500 15px var(--body); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100%;
+  box-sizing: border-box; min-width: 0;
+}
+.field input[type="text"]:focus-visible { outline: 2px solid var(--green); outline-offset: 1px; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label {
+  font-size: 12px; font-weight: 700; color: var(--fg); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 11px; cursor: pointer; background: var(--bg);
+}
+.seg input:checked + label { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-fg); }
+.seg input:focus-visible + label { outline: 2px solid var(--green); outline-offset: 2px; }
+.res-actions { display: flex; gap: 8px; align-items: center; }
+.res-actions .btn { flex: 1; }
+.icon-btn {
+  width: 40px; height: 40px; flex: none; border-radius: 9px; border: 1px solid var(--line);
+  background: transparent; color: var(--muted); font: 700 18px var(--body); cursor: pointer;
+}
+.icon-btn:hover { color: var(--warn); border-color: var(--warn); }
+.icon-btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.res-note { margin: 0; font-size: 12px; color: var(--muted); }
+.res-note.warn { color: var(--warn); }
 
 /* ---------- Matriz e especificações ---------- */
 .pair { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px; align-items: start; }
@@ -181,8 +195,8 @@ dd { min-width: 0; }
 .copy-status:empty { display: none; }
 
 @media (max-width: 720px) {
-  .gen { grid-template-columns: 1fr; padding: 18px; }
-  .preview { order: -1; }
+  .gen { padding: 18px; }
+  .results { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); }
   .pair { grid-template-columns: 1fr; }
   dl { grid-template-columns: 1fr; }
   dd { border-top: 0; padding-top: 0; }
@@ -200,49 +214,41 @@ img { max-width: 100%; }
   <header>
     <div class="eyebrow">Syndex · foto de grupo</div>
     <h1>Matriz Syndex para grupos de WhatsApp</h1>
-    <p>Envie o logo da outra empresa e a foto do grupo sai pronta, com o fundo e o logo da Syndex fixos.</p>
+    <p>Envie um ou vários logos de outras empresas. Cada logo vira uma foto de grupo pronta, com o fundo e o logo da Syndex fixos.</p>
   </header>
 
   <!-- ===== Gerador ===== -->
   <section class="gen" aria-labelledby="gen-title">
-    <div class="controls">
+    <div class="gen-head">
       <h2 id="gen-title">Gerador automático</h2>
-
-      <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="drop-help">
-        <img class="thumb" id="logo-thumb" alt="Logo carregado" hidden>
-        <strong id="drop-title">Enviar logo da empresa</strong>
-        <span id="drop-help">Clique para escolher, arraste a imagem aqui ou cole com Ctrl+V. PNG, JPG ou print do site.</span>
-        <input type="file" id="logo-file" accept="image/*" hidden>
-      </div>
-
-      <div class="field">
-        <label for="cliente-nome">Nome do cliente (para o arquivo)</label>
-        <input type="text" id="cliente-nome" placeholder="Ex.: nome da empresa" autocomplete="off">
-      </div>
-
-      <div class="field">
-        <span class="label" id="cor-label">Cor do logo</span>
-        <div class="seg" role="radiogroup" aria-labelledby="cor-label">
-          <input type="radio" name="cor" id="cor-auto" value="auto" checked><label for="cor-auto">Automático</label>
-          <input type="radio" name="cor" id="cor-original" value="original"><label for="cor-original">Cores originais</label>
-          <input type="radio" name="cor" id="cor-navy" value="navy"><label for="cor-navy">Azul Syndex</label>
-        </div>
-      </div>
-
-      <div class="actions">
-        <button type="button" class="btn" id="salvar" disabled>Salvar PNG 640×640</button>
-        <button type="button" class="btn ghost" id="trocar">Trocar logo</button>
-      </div>
-      <p class="status" id="status" role="status" aria-live="polite">Carregando a matriz…</p>
-      <p class="hint" id="save-hint" hidden>Para salvar: toque e segure na imagem quadrada ao lado (ou botão direito → Salvar imagem).</p>
+      <span class="size">Cada foto sai em PNG 640 × 640 px</span>
     </div>
 
-    <div class="preview">
-      <span class="tag waiting" id="preview-tag">Matriz · aguardando o logo</span>
-      <img class="circle-out" id="out-circle" src="matriz/Matriz_Syndex_Base.png" alt="Prévia redonda da foto do grupo">
-      <div class="square-row">
-        <img class="square-out" id="out-square" src="matriz/Matriz_Syndex_Base.png" alt="Arquivo final quadrado 640 por 640">
-        <p>Arquivo final quadrado, 640×640 px. O WhatsApp recorta em círculo.</p>
+    <div class="drop" id="drop" role="button" tabindex="0" aria-describedby="drop-help">
+      <strong>Enviar logos</strong>
+      <span id="drop-help">Clique para escolher, arraste as imagens aqui ou cole com Ctrl+V. Dá para mandar vários logos de uma vez: cada um vira uma foto de grupo.</span>
+      <input type="file" id="logo-file" accept="image/*" multiple hidden>
+    </div>
+
+    <div class="batch-bar" id="batch-bar" hidden>
+      <div>
+        <strong id="batch-count">0 fotos prontas</strong>
+        <span> · confira cada uma no recorte redondo</span>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" id="baixar-todas">Baixar todas</button>
+        <button type="button" class="btn ghost" id="mais-logos">Adicionar logos</button>
+        <button type="button" class="btn ghost" id="limpar">Limpar</button>
+      </div>
+    </div>
+
+    <p class="status" id="status" role="status" aria-live="polite">Carregando a matriz…</p>
+    <p class="hint" id="save-hint" hidden>Para salvar uma foto: toque e segure na prévia dela (ou botão direito → Salvar imagem).</p>
+
+    <div class="results" id="results">
+      <div class="empty" id="empty">
+        <img src="matriz/Matriz_Syndex_Base.png" alt="Matriz Syndex aguardando os logos">
+        <p>Matriz · aguardando os logos</p>
       </div>
     </div>
   </section>
@@ -259,6 +265,8 @@ img { max-width: 100%; }
     <dl>
       <dt>Arquivo final</dt>
       <dd>PNG quadrado, <code>640 × 640 px</code> (tamanho da foto de perfil do WhatsApp)</dd>
+      <dt>Vários logos</dt>
+      <dd>Até 30 por vez. Cada logo gera uma foto 640 × 640; “Baixar todas” junta tudo num arquivo .zip</dd>
       <dt>Área do logo do cliente</dt>
       <dd>Até <code>500 × 140 px</code> na matriz, alinhado à direita a 60 px do divisor e centralizado na altura do logo Syndex</dd>
       <dt>Recorte redondo</dt>
@@ -313,20 +321,25 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
   </section>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 (function () {
   // ---- Medidas da matriz (iguais ao script aprovado) ----
   var MATRIZ_URL = 'matriz/Matriz_Syndex_Base.png';
   var NAVY = [27, 63, 140];
   var BOX_RIGHT = 603, BOX_MAX_W = 500, BOX_MAX_H = 140, CENTER_Y = 586, OUT = 640;
+  var MAX_LOGOS = 30;
 
   var $ = function (id) { return document.getElementById(id); };
-  var drop = $('drop'), fileIn = $('logo-file'), thumb = $('logo-thumb'), dropTitle = $('drop-title');
-  var nomeIn = $('cliente-nome'), salvarBtn = $('salvar'), trocarBtn = $('trocar');
-  var statusEl = $('status'), hintEl = $('save-hint'), tagEl = $('preview-tag');
-  var outCircle = $('out-circle'), outSquare = $('out-square');
+  var drop = $('drop'), fileIn = $('logo-file'), results = $('results'), empty = $('empty');
+  var bar = $('batch-bar'), countEl = $('batch-count'), statusEl = $('status'), hintEl = $('save-hint');
+  var btnTodas = $('baixar-todas'), btnMais = $('mais-logos'), btnLimpar = $('limpar');
 
-  var matriz = null, logoImg = null, outBlob = null, outUrl = null, downloads;
+  var matriz = null, itens = [], seq = 0;
+  var noClaude = !(window.claude && typeof window.claude.use === 'function');
+  var downloadsP = noClaude ? Promise.resolve(null)
+    : window.claude.use('downloads').catch(function () { return null; });
+  var matrizPronta = loadImage(MATRIZ_URL).then(function (im) { matriz = im; return im; });
 
   function setStatus(msg, kind) {
     statusEl.textContent = msg;
@@ -356,7 +369,6 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
     ox.drawImage(cur, 0, 0, tw, th);
     return o;
   }
-
   function median(arr) { arr.sort(function (a, b) { return a - b; }); return arr[arr.length >> 1]; }
 
   // Remove fundo sólido, recorta e aplica a regra de cor
@@ -370,12 +382,9 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
 
     var semAlpha = 0;
     for (i = 3; i < p.length; i += 4) if (p[i] < 250) semAlpha++;
-    var transparente = semAlpha / n > 0.02;
-
-    if (!transparente) {
+    if (semAlpha / n <= 0.02) {
       var k = Math.max(2, Math.floor(Math.min(w, h) / 20)), rs = [], gs = [], bs = [];
-      var cantos = [[0, 0], [w - k, 0], [0, h - k], [w - k, h - k]];
-      cantos.forEach(function (c0) {
+      [[0, 0], [w - k, 0], [0, h - k], [w - k, h - k]].forEach(function (c0) {
         for (var yy = c0[1]; yy < c0[1] + k; yy++) for (var xx = c0[0]; xx < c0[0] + k; xx++) {
           var j = (yy * w + xx) * 4; rs.push(p[j]); gs.push(p[j + 1]); bs.push(p[j + 2]);
         }
@@ -385,106 +394,254 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
         var dr = p[i] - br, dg = p[i + 1] - bg, db = p[i + 2] - bb;
         var dist = Math.sqrt(dr * dr + dg * dg + db * db);
         var a = Math.min(1, Math.max(0, (dist - 18) / (60 - 18)));
-        p[i + 3] = Math.round(a * (p[i + 3] / 255) * 255);
+        p[i + 3] = Math.round(a * p[i + 3]);
       }
     }
 
-    // Recorte pelo conteúdo visível
     var minX = w, minY = h, maxX = -1, maxY = -1, somaL = 0, cont = 0;
-    for (var yy2 = 0; yy2 < h; yy2++) for (var xx2 = 0; xx2 < w; xx2++) {
-      var j2 = (yy2 * w + xx2) * 4, al = p[j2 + 3];
+    for (var y2 = 0; y2 < h; y2++) for (var x2 = 0; x2 < w; x2++) {
+      var j2 = (y2 * w + x2) * 4, al = p[j2 + 3];
       if (al > 20) {
-        if (xx2 < minX) minX = xx2; if (xx2 > maxX) maxX = xx2;
-        if (yy2 < minY) minY = yy2; if (yy2 > maxY) maxY = yy2;
+        if (x2 < minX) minX = x2; if (x2 > maxX) maxX = x2;
+        if (y2 < minY) minY = y2; if (y2 > maxY) maxY = y2;
       }
       if (al > 128) { somaL += (p[j2] + p[j2 + 1] + p[j2 + 2]) / 3; cont++; }
     }
     if (maxX < 0) return null;
     var lum = cont ? somaL / cont : 0;
     var recolorir = modo === 'navy' || (modo === 'auto' && lum > 215);
-    if (recolorir) {
-      for (i = 0; i < p.length; i += 4) { p[i] = NAVY[0]; p[i + 1] = NAVY[1]; p[i + 2] = NAVY[2]; }
-    }
+    if (recolorir) for (i = 0; i < p.length; i += 4) { p[i] = NAVY[0]; p[i + 1] = NAVY[1]; p[i + 2] = NAVY[2]; }
     x.putImageData(d, 0, 0);
-    var cw = maxX - minX + 1, ch = maxY - minY + 1;
-    var crop = canvas(cw, ch);
+    var cw = maxX - minX + 1, ch = maxY - minY + 1, crop = canvas(cw, ch);
     crop.getContext('2d').drawImage(c, minX, minY, cw, ch, 0, 0, cw, ch);
     return { canvas: crop, recolorido: recolorir };
   }
 
-  function modoAtual() {
-    var r = document.querySelector('input[name="cor"]:checked');
-    return r ? r.value : 'auto';
-  }
-
-  function gerar() {
-    if (!matriz || !logoImg) return;
-    var prep = prepararLogo(logoImg, modoAtual());
-    if (!prep) {
-      setStatus('Não encontrei o logo nessa imagem. Tente um arquivo com o logo mais visível.', 'warn');
-      salvarBtn.disabled = true;
-      return;
-    }
-    var lc = prep.canvas;
-    var s = Math.min(BOX_MAX_W / lc.width, BOX_MAX_H / lc.height);
+  // Monta a foto 640×640 de um logo
+  function compor(item) {
+    var prep = prepararLogo(item.img, item.modo);
+    if (!prep) return Promise.resolve(null);
+    var lc = prep.canvas, s = Math.min(BOX_MAX_W / lc.width, BOX_MAX_H / lc.height);
     var lw = Math.max(1, Math.round(lc.width * s)), lh = Math.max(1, Math.round(lc.height * s));
-    var logoFit = resizeHQ(lc, lw, lh);
-
     var base = canvas(matriz.naturalWidth, matriz.naturalHeight), bx = base.getContext('2d');
     bx.drawImage(matriz, 0, 0);
-    bx.drawImage(logoFit, BOX_RIGHT - lw, CENTER_Y - Math.floor(lh / 2));
+    bx.drawImage(resizeHQ(lc, lw, lh), BOX_RIGHT - lw, CENTER_Y - Math.floor(lh / 2));
     var final = resizeHQ(base, OUT, OUT);
-
-    final.toBlob(function (blob) {
-      if (!blob) { setStatus('Não consegui montar a imagem. Recarregue a página e tente de novo.', 'warn'); return; }
-      outBlob = blob;
-      if (outUrl) URL.revokeObjectURL(outUrl);
-      outUrl = URL.createObjectURL(blob);
-      outCircle.src = outUrl;
-      outSquare.src = outUrl;
-      salvarBtn.disabled = false;
-      var corMsg = prep.recolorido ? 'Logo pintado de azul Syndex.' : 'Logo com as cores originais.';
-      tagEl.textContent = 'Como aparece no WhatsApp';
-      tagEl.classList.remove('waiting');
-      setStatus('Pronto. ' + corMsg, 'ok');
-    }, 'image/png');
-  }
-
-  function nomeDoArquivo(nome) {
-    return String(nome || '').replace(/\.[a-z0-9]+$/i, '')
-      .replace(/[_\-]+/g, ' ').replace(/\b(logo|logotipo|image|imagem|img)\b/gi, '')
-      .replace(/\s+/g, ' ').trim();
-  }
-
-  function usarArquivo(file) {
-    if (!file || !/^image\//.test(file.type)) {
-      setStatus('Esse arquivo não é uma imagem. Envie o logo em PNG, JPG ou WEBP.', 'warn');
-      return;
-    }
-    var url = URL.createObjectURL(file);
-    loadImage(url).then(function (im) {
-      logoImg = im;
-      thumb.src = url; thumb.hidden = false;
-      dropTitle.textContent = 'Logo carregado';
-      var sugestao = nomeDoArquivo(file.name);
-      if (!nomeIn.value || nomeIn.dataset.auto === '1') {
-        nomeIn.value = /^\d+$/.test(sugestao.replace(/\s/g, '')) ? '' : sugestao;
-        nomeIn.dataset.auto = '1';
-      }
-      gerar();
-    }).catch(function () {
-      setStatus('Não consegui abrir essa imagem. Tente salvar o logo como PNG ou JPG.', 'warn');
+    return new Promise(function (res) {
+      final.toBlob(function (blob) { res(blob ? { blob: blob, recolorido: prep.recolorido } : null); }, 'image/png');
     });
   }
 
+  function limparNome(s) {
+    return String(s || '').trim().replace(/[\\\/:*?"<>|]+/g, '').replace(/\s+/g, '_');
+  }
+  function nomeArquivo(item) { return 'Syndex_' + (limparNome(item.nome) || 'Cliente') + '_WhatsApp.png'; }
+  function nomeDoArquivoOriginal(nome) {
+    var s = String(nome || '').replace(/\.[a-z0-9]+$/i, '')
+      .replace(/[_\-]+/g, ' ').replace(/\b(logo|logotipo|image|imagem|img)\b/gi, '')
+      .replace(/\s+/g, ' ').trim();
+    return /^\d*$/.test(s.replace(/\s/g, '')) ? '' : s;
+  }
+
+  // Salva um arquivo: no Claude pelo recurso de download; no site, direto pelo navegador
+  function salvarArquivo(nome, blob) {
+    if (noClaude) {
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+      return Promise.resolve({ status: 'saved' });
+    }
+    return downloadsP.then(function (dl) {
+      if (!dl) throw { code: 'unavailable' };
+      return dl.save({ filename: nome, data: blob });
+    });
+  }
+  function avisoErro(err, oque) {
+    var code = err && err.code;
+    if (code === 'declined') setStatus('Download cancelado.');
+    else if (code === 'rate_limited') setStatus('Já existe um download aguardando confirmação. Conclua ou feche e tente de novo.', 'warn');
+    else { hintEl.hidden = false; setStatus('Não foi possível baixar ' + oque + ' aqui. Salve pela prévia da foto.', 'warn'); }
+  }
+
+  function atualizarBarra() {
+    var prontas = itens.filter(function (i) { return i.blob; }).length;
+    bar.hidden = itens.length === 0;
+    empty.hidden = itens.length > 0;
+    countEl.textContent = prontas + (prontas === 1 ? ' foto pronta' : ' fotos prontas');
+    btnTodas.textContent = prontas > 1 ? 'Baixar todas (.zip)' : 'Baixar foto';
+    btnTodas.disabled = prontas === 0;
+  }
+
+  function criarCard(item) {
+    var art = document.createElement('article');
+    art.className = 'res';
+    var img = document.createElement('img');
+    img.className = 'res-circle loading'; img.alt = 'Prévia redonda da foto do grupo';
+    img.src = MATRIZ_URL;
+
+    var f1 = document.createElement('div'); f1.className = 'field';
+    var lb = document.createElement('label'); lb.htmlFor = 'nome-' + item.id; lb.textContent = 'Nome do cliente (para o arquivo)';
+    var inp = document.createElement('input'); inp.type = 'text'; inp.id = 'nome-' + item.id;
+    inp.autocomplete = 'off'; inp.placeholder = 'Ex.: nome da empresa'; inp.value = item.nome;
+    inp.addEventListener('input', function () {
+      item.nome = inp.value;
+      img.alt = 'Prévia redonda: Syndex e ' + (item.nome || 'cliente');
+    });
+    f1.appendChild(lb); f1.appendChild(inp);
+
+    var f2 = document.createElement('div'); f2.className = 'field';
+    var lab2 = document.createElement('span'); lab2.className = 'label'; lab2.id = 'cor-l-' + item.id; lab2.textContent = 'Cor do logo';
+    var seg = document.createElement('div'); seg.className = 'seg'; seg.setAttribute('role', 'radiogroup');
+    seg.setAttribute('aria-labelledby', lab2.id);
+    [['auto', 'Automático'], ['original', 'Originais'], ['navy', 'Azul Syndex']].forEach(function (o) {
+      var r = document.createElement('input'); r.type = 'radio'; r.name = 'cor-' + item.id;
+      r.id = 'cor-' + item.id + '-' + o[0]; r.value = o[0]; r.checked = item.modo === o[0];
+      r.addEventListener('change', function () { item.modo = o[0]; gerar(item); });
+      var l = document.createElement('label'); l.htmlFor = r.id; l.textContent = o[1];
+      seg.appendChild(r); seg.appendChild(l);
+    });
+    f2.appendChild(lab2); f2.appendChild(seg);
+
+    var acts = document.createElement('div'); acts.className = 'res-actions';
+    var bSalvar = document.createElement('button'); bSalvar.type = 'button'; bSalvar.className = 'btn small';
+    bSalvar.textContent = 'Salvar PNG'; bSalvar.disabled = true;
+    bSalvar.addEventListener('click', function () {
+      if (!item.blob) return;
+      var nome = nomeArquivo(item);
+      bSalvar.disabled = true;
+      salvarArquivo(nome, item.blob).then(function () { setStatus('Arquivo salvo: ' + nome, 'ok'); },
+        function (err) { avisoErro(err, 'a foto'); })
+        .then(function () { bSalvar.disabled = false; });
+    });
+    var bRem = document.createElement('button'); bRem.type = 'button'; bRem.className = 'icon-btn';
+    bRem.textContent = '×'; bRem.setAttribute('aria-label', 'Remover esta foto');
+    bRem.addEventListener('click', function () { remover(item); });
+    acts.appendChild(bSalvar); acts.appendChild(bRem);
+
+    var note = document.createElement('p'); note.className = 'res-note'; note.textContent = 'Montando a foto…';
+
+    art.appendChild(img); art.appendChild(f1); art.appendChild(f2); art.appendChild(acts); art.appendChild(note);
+    item.el = { card: art, img: img, salvar: bSalvar, note: note };
+    results.appendChild(art);
+  }
+
+  function gerar(item) {
+    var minha = ++item.versao;
+    item.el.img.classList.add('loading');
+    return matrizPronta.then(function () { return compor(item); }).then(function (r) {
+      if (minha !== item.versao || itens.indexOf(item) < 0) return;
+      item.el.img.classList.remove('loading');
+      if (!r) {
+        item.blob = null;
+        item.el.salvar.disabled = true;
+        item.el.note.className = 'res-note warn';
+        item.el.note.textContent = 'Não encontrei o logo nessa imagem. Tente um arquivo com o logo mais visível.';
+        atualizarBarra();
+        return;
+      }
+      if (item.url) URL.revokeObjectURL(item.url);
+      item.blob = r.blob; item.url = URL.createObjectURL(r.blob);
+      item.el.img.src = item.url;
+      item.el.img.alt = 'Prévia redonda: Syndex e ' + (item.nome || 'cliente');
+      item.el.salvar.disabled = false;
+      item.el.note.className = 'res-note';
+      item.el.note.textContent = r.recolorido ? 'Logo pintado de azul Syndex. PNG 640 × 640.' : 'Logo com as cores originais. PNG 640 × 640.';
+      atualizarBarra();
+    }).catch(function () {
+      item.el.note.className = 'res-note warn';
+      item.el.note.textContent = 'Não consegui montar esta foto. Recarregue a página e tente de novo.';
+    });
+  }
+
+  function remover(item) {
+    var i = itens.indexOf(item); if (i < 0) return;
+    itens.splice(i, 1);
+    if (item.url) URL.revokeObjectURL(item.url);
+    if (item.src) URL.revokeObjectURL(item.src);
+    item.el.card.remove();
+    atualizarBarra();
+    setStatus(itens.length ? itens.length + (itens.length === 1 ? ' logo na lista.' : ' logos na lista.') : 'Lista vazia. Envie os logos.');
+  }
+
+  function adicionarArquivos(lista) {
+    var arquivos = Array.prototype.filter.call(lista || [], function (f) { return f && /^image\//.test(f.type); });
+    var ignorados = (lista ? lista.length : 0) - arquivos.length;
+    var vagas = MAX_LOGOS - itens.length;
+    if (vagas <= 0) { setStatus('Limite de ' + MAX_LOGOS + ' logos por vez. Baixe as fotos e clique em Limpar.', 'warn'); return; }
+    if (arquivos.length > vagas) { ignorados += arquivos.length - vagas; arquivos = arquivos.slice(0, vagas); }
+    if (!arquivos.length) { setStatus('Nenhuma imagem encontrada. Envie os logos em PNG, JPG ou WEBP.', 'warn'); return; }
+    setStatus('Montando ' + arquivos.length + (arquivos.length === 1 ? ' foto…' : ' fotos…'));
+    var fila = Promise.resolve();
+    arquivos.forEach(function (file) {
+      var item = { id: ++seq, nome: nomeDoArquivoOriginal(file.name), modo: 'auto', blob: null, url: null, versao: 0 };
+      item.src = URL.createObjectURL(file);
+      itens.push(item);
+      criarCard(item);
+      atualizarBarra();
+      fila = fila.then(function () {
+        return loadImage(item.src).then(function (im) { item.img = im; return gerar(item); }, function () {
+          item.el.img.classList.remove('loading');
+          item.el.note.className = 'res-note warn';
+          item.el.note.textContent = 'Não consegui abrir esta imagem. Salve o logo como PNG ou JPG.';
+        });
+      });
+    });
+    fila.then(function () {
+      var prontas = itens.filter(function (i) { return i.blob; }).length;
+      var msg = 'Pronto. ' + prontas + (prontas === 1 ? ' foto' : ' fotos') + ' em 640 × 640.';
+      if (ignorados > 0) msg += ' ' + ignorados + (ignorados === 1 ? ' arquivo ignorado' : ' arquivos ignorados') + ' (não é imagem ou passou do limite).';
+      setStatus(msg, 'ok');
+    });
+  }
+
+  // Baixar todas: uma foto sai como PNG; várias saem num .zip
+  btnTodas.addEventListener('click', function () {
+    var prontas = itens.filter(function (i) { return i.blob; });
+    if (!prontas.length) return;
+    if (prontas.length === 1) {
+      var n1 = nomeArquivo(prontas[0]);
+      salvarArquivo(n1, prontas[0].blob).then(function () { setStatus('Arquivo salvo: ' + n1, 'ok'); }, function (e) { avisoErro(e, 'a foto'); });
+      return;
+    }
+    if (!window.JSZip) { setStatus('Não consegui juntar as fotos em .zip agora. Use “Salvar PNG” em cada uma.', 'warn'); return; }
+    var zip = new window.JSZip(), usados = {};
+    prontas.forEach(function (it) {
+      var n = nomeArquivo(it), base = n.replace(/\.png$/i, ''), k = 2;
+      while (usados[n]) { n = base + '_' + (k++) + '.png'; }
+      usados[n] = true;
+      zip.file(n, it.blob);
+    });
+    var hoje = new Date(), dd = ('0' + hoje.getDate()).slice(-2), mm = ('0' + (hoje.getMonth() + 1)).slice(-2);
+    var nomeZip = 'Syndex_Fotos_WhatsApp_' + dd + '-' + mm + '-' + hoje.getFullYear() + '.zip';
+    btnTodas.disabled = true;
+    setStatus('Juntando ' + prontas.length + ' fotos…');
+    zip.generateAsync({ type: 'blob' }).then(function (blob) {
+      return salvarArquivo(nomeZip, blob);
+    }).then(function () { setStatus('Arquivo salvo: ' + nomeZip + ' (' + prontas.length + ' fotos)', 'ok'); },
+      function (e) { avisoErro(e, 'o .zip'); })
+      .then(function () { btnTodas.disabled = false; });
+  });
+
+  btnLimpar.addEventListener('click', function () {
+    itens.slice().forEach(function (it) {
+      if (it.url) URL.revokeObjectURL(it.url);
+      if (it.src) URL.revokeObjectURL(it.src);
+      it.el.card.remove();
+    });
+    itens = [];
+    atualizarBarra();
+    setStatus('Lista vazia. Envie os logos.');
+  });
+
   // Entradas: clique, teclado, arrastar e colar
-  drop.addEventListener('click', function () { fileIn.click(); });
-  trocarBtn.addEventListener('click', function () { fileIn.click(); });
+  function escolher() { fileIn.click(); }
+  drop.addEventListener('click', escolher);
+  btnMais.addEventListener('click', escolher);
   drop.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); escolher(); }
   });
   fileIn.addEventListener('change', function () {
-    if (fileIn.files && fileIn.files[0]) usarArquivo(fileIn.files[0]);
+    if (fileIn.files && fileIn.files.length) adicionarArquivos(fileIn.files);
     fileIn.value = '';
   });
   ['dragenter', 'dragover'].forEach(function (ev) {
@@ -494,60 +651,21 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
     drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); });
   });
   drop.addEventListener('drop', function (e) {
-    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) usarArquivo(f);
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) adicionarArquivos(e.dataTransfer.files);
   });
   document.addEventListener('paste', function (e) {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-    var items = (e.clipboardData && e.clipboardData.items) || [];
+    var items = (e.clipboardData && e.clipboardData.items) || [], fs = [];
     for (var i = 0; i < items.length; i++) {
-      if (items[i].type && items[i].type.indexOf('image/') === 0) {
-        var f = items[i].getAsFile();
-        if (f) { e.preventDefault(); usarArquivo(f); return; }
-      }
+      if (items[i].type && items[i].type.indexOf('image/') === 0) { var f = items[i].getAsFile(); if (f) fs.push(f); }
     }
-  });
-  nomeIn.addEventListener('input', function () { nomeIn.dataset.auto = '0'; });
-  document.querySelectorAll('input[name="cor"]').forEach(function (r) { r.addEventListener('change', gerar); });
-
-  // Salvar o PNG
-  salvarBtn.addEventListener('click', function () {
-    if (!outBlob) return;
-    var nome = (nomeIn.value || '').trim().replace(/[\\\/:*?"<>|]+/g, '').replace(/\s+/g, '_');
-    var filename = 'Syndex_' + (nome || 'Cliente') + '_WhatsApp.png';
-    if (!downloads) {
-      if (!noClaude) { hintEl.hidden = false; return; }
-      var a = document.createElement('a');
-      a.href = outUrl; a.download = filename;
-      document.body.appendChild(a); a.click(); a.remove();
-      setStatus('Arquivo salvo: ' + filename, 'ok');
-      return;
-    }
-    salvarBtn.disabled = true;
-    downloads.save({ filename: filename, data: outBlob }).then(function () {
-      setStatus('Arquivo salvo: ' + filename, 'ok');
-    }, function (err) {
-      var code = err && err.code;
-      if (code === 'declined') setStatus('Download cancelado.');
-      else if (code === 'rate_limited') setStatus('Já existe um download aberto. Conclua ou feche e tente de novo.', 'warn');
-      else { hintEl.hidden = false; setStatus('O download não está disponível aqui. Salve pela imagem quadrada.', 'warn'); }
-    }).then(function () { salvarBtn.disabled = false; });
+    if (fs.length) { e.preventDefault(); adicionarArquivos(fs); }
   });
 
-  // Recurso de download do Claude (quando disponível)
-  var noClaude = !(window.claude && window.claude.use);
-  (noClaude ? Promise.resolve(null) : window.claude.use('downloads'))
-    .then(function (ns) { downloads = ns; if (!ns && !noClaude) hintEl.hidden = false; })
-    .catch(function () { if (!noClaude) hintEl.hidden = false; });
-
-  // Início: carrega só a matriz e espera o logo
-  loadImage(MATRIZ_URL).then(function (im) {
-    matriz = im;
-    if (logoImg) { gerar(); return; } // logo enviado antes da matriz terminar de carregar
-    setStatus('Matriz pronta. Envie o logo da empresa.');
-  }).catch(function () {
-    setStatus('Não consegui carregar a matriz. Recarregue a página.', 'warn');
-  });
+  downloadsP.then(function (ns) { if (!ns && !noClaude) hintEl.hidden = false; });
+  matrizPronta.then(function () {
+    if (!itens.length) setStatus('Matriz pronta. Envie um ou vários logos.');
+  }, function () { setStatus('Não consegui carregar a matriz. Recarregue a página.', 'warn'); });
 
   // Copiar prompt
   var copyBtn = $('copy-prompt'), pre = $('prompt-text'), copyStatus = $('copy-status');
