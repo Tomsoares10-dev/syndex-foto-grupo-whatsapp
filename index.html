@@ -285,11 +285,11 @@ img { max-width: 100%; }
       <dt>Arquivo final</dt>
       <dd>PNG quadrado, <code>640 × 640 px</code> (tamanho da foto de perfil do WhatsApp)</dd>
       <dt>Duas empresas no mesmo grupo</dt>
-      <dd>Os dois logos ficam empilhados no lado esquerdo: cada um com até <code>480 × 104 px</code>, 40 px entre eles, alinhados à direita a 60 px do divisor e centralizados na altura do logo Syndex</dd>
+      <dd>Os dois logos ficam empilhados no lado esquerdo: cada um com até <code>480 × 104 px</code>, 40 px entre eles, centralizados um sobre o outro. O conjunto é centralizado automaticamente no lado esquerdo, pelo tamanho dos logos, e na altura do logo Syndex</dd>
       <dt>Vários logos</dt>
       <dd>Até 30 por vez. Cada logo gera uma foto 640 × 640; “Baixar todas” junta tudo num arquivo .zip</dd>
       <dt>Área do logo do cliente</dt>
-      <dd>Até <code>500 × 140 px</code> na matriz, alinhado à direita a 60 px do divisor e centralizado na altura do logo Syndex</dd>
+      <dd>Até <code>500 × 140 px</code> na matriz. Centralizado automaticamente no lado esquerdo, de acordo com o tamanho do logo, e na altura do logo Syndex. Logo largo recua para não passar de 60 px antes do divisor</dd>
       <dt>Recorte redondo</dt>
       <dd>Os dois logos ficam inteiros dentro do círculo do WhatsApp</dd>
       <dt>Logo do cliente</dt>
@@ -327,8 +327,8 @@ Anexei 2 imagens:
 
 Regras:
 - Não altere nada da matriz. Fundo, divisor e logo da Syndex ficam exatamente como estão. Não recrie nem redesenhe a imagem: edite o próprio arquivo enviado, por código (por exemplo, Python com Pillow).
-- Coloque somente o logo do cliente no lado esquerdo, numa área de até 500 × 140 px, alinhado à direita em x = 603 px (60 px antes do divisor) e com o centro vertical em y = 586 px. Mantenha a proporção do logo.
-- Se forem duas empresas do mesmo grupo (anexe os dois logos), empilhe-as no lado esquerdo: cada logo em até 480 × 104 px, alinhado à direita em x = 603 px, com 40 px entre eles, e o conjunto centralizado em y = 586 px.
+- Coloque somente o logo do cliente no lado esquerdo, numa área de até 500 × 140 px, com o centro vertical em y = 586 px. Mantenha a proporção do logo. Centralize pelo tamanho do logo: o centro horizontal fica em x = 384 px (espelho do logo Syndex em relação ao divisor). Se o logo for largo demais para isso, recue para a esquerda até a borda direita ficar em x = 603 px (60 px antes do divisor).
+- Se forem duas empresas do mesmo grupo (anexe os dois logos), empilhe-as no lado esquerdo: cada logo em até 480 × 104 px, com 40 px entre eles, os dois centralizados no mesmo eixo (x = 384 px, ou recuado se o mais largo passar de x = 603 px) e o conjunto centralizado em y = 586 px.
 - Use o logo exatamente como no arquivo: não troque cores, não pinte, não remova o fundo e não redesenhe. Só corte a margem vazia em volta, deixando uma folga pequena.
 - Não acrescente textos, sombras, molduras ou efeitos.
 - Exporte em PNG quadrado de 640 × 640 px.
@@ -345,7 +345,9 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
 (function () {
   // ---- Medidas da matriz (iguais ao script aprovado) ----
   var MATRIZ_URL = 'matriz/Matriz_Syndex_Base.png';
-  var BOX_RIGHT = 603, CENTER_Y = 586, OUT = 640;
+  // Lado esquerdo livre: de x = 103 até x = 603 (60 px antes do divisor).
+  // CENTER_X = espelho do centro do logo Syndex em relação ao divisor (x = 664).
+  var BOX_LEFT = 103, BOX_RIGHT = 603, CENTER_X = 384, CENTER_Y = 586, OUT = 640;
   var UMA = { w: 500, h: 140 };            // uma empresa
   var DUAS = { w: 480, h: 104, gap: 40 };  // duas empresas empilhadas
   var MAX_FOTOS = 30;
@@ -444,6 +446,12 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
     return { canvas: crop, claro: claro };
   }
 
+  // Centraliza automaticamente pelo tamanho do logo: o centro fica no eixo CENTER_X;
+  // se o logo for largo demais para isso, ele recua até não passar dos limites da área.
+  function eixoX(larg) {
+    return Math.max(BOX_LEFT + larg / 2, Math.min(CENTER_X, BOX_RIGHT - larg / 2));
+  }
+
   function caber(cv, mw, mh) {
     var s = Math.min(mw / cv.width, mh / cv.height);
     var w = Math.max(1, Math.round(cv.width * s)), h = Math.max(1, Math.round(cv.height * s));
@@ -464,12 +472,13 @@ Entregue o arquivo com o nome Syndex_[NomeDoCliente]_WhatsApp.png.</pre>
     bx.drawImage(matriz, 0, 0);
     if (!item.duas) {
       var c1 = caber(preps[0].canvas, UMA.w, UMA.h);
-      bx.drawImage(c1, BOX_RIGHT - c1.width, CENTER_Y - Math.floor(c1.height / 2));
+      bx.drawImage(c1, Math.round(eixoX(c1.width) - c1.width / 2), CENTER_Y - Math.floor(c1.height / 2));
     } else {
       var cs = preps.map(function (p) { return caber(p.canvas, DUAS.w, DUAS.h); });
       var tot = cs.reduce(function (s, c) { return s + c.height; }, 0) + DUAS.gap * (cs.length - 1);
       var y = CENTER_Y - Math.floor(tot / 2);
-      cs.forEach(function (c) { bx.drawImage(c, BOX_RIGHT - c.width, y); y += c.height + DUAS.gap; });
+      var eixo = eixoX(Math.max.apply(null, cs.map(function (c) { return c.width; })));
+      cs.forEach(function (c) { bx.drawImage(c, Math.round(eixo - c.width / 2), y); y += c.height + DUAS.gap; });
     }
     var final = resizeHQ(base, OUT, OUT);
     return new Promise(function (res) {

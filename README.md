@@ -21,8 +21,8 @@ Tudo roda no navegador. O logo enviado não sai do seu computador.
 | Item | Regra |
 |---|---|
 | Arquivo final | PNG quadrado, 640 × 640 px (um por logo) |
-| Logo do cliente | Até 500 × 140 px na matriz (1254 × 1254), alinhado à direita em x = 603 px e centralizado em y = 586 px |
-| Duas empresas no mesmo grupo | Logos empilhados à esquerda, cada um até 480 × 104 px, 40 px entre eles, alinhados à direita em x = 603 px e centralizados em y = 586 px |
+| Logo do cliente | Até 500 × 140 px na matriz (1254 × 1254), centro vertical em y = 586 px. Centralizado automaticamente pelo tamanho: centro em x = 384 px (espelho do logo Syndex); logo largo recua até a borda direita ficar em x = 603 px (60 px antes do divisor) |
+| Duas empresas no mesmo grupo | Logos empilhados à esquerda, cada um até 480 × 104 px, 40 px entre eles, centralizados no mesmo eixo (mesma regra acima, pelo logo mais largo) e o conjunto centralizado em y = 586 px |
 | Logo do cliente | Entra exatamente como no arquivo: mesmas cores e o mesmo fundo. Só a margem vazia em volta é cortada. Para o logo aparecer sem fundo, envie um PNG transparente |
 | Fixo | Fundo, divisor e logo Syndex com "Diga sim para o sucesso." |
 

@@ -3,14 +3,17 @@ Uso: python3 gerar_parceria.py <matriz_base.png> <logo_parceiro> <saida.png>
 - matriz_base.png: fundo + divisor + logo Syndex, lado esquerdo vazio (1254x1254)
 - O logo do parceiro entra exatamente como no arquivo (mesmas cores e mesmo fundo).
   Só a margem vazia em volta é cortada, com uma folga pequena quando o arquivo tem fundo.
-- O logo entra alinhado à direita, encostado no divisor (mesmo respiro do original)
+- O logo é centralizado automaticamente pelo tamanho: centro em x = 384 (espelho do logo Syndex
+  em relação ao divisor); se for largo demais, recua até a borda direita ficar em x = 603
 - Saída final 640x640 (tamanho da foto de perfil do WhatsApp)
 """
 import sys
 import numpy as np
 from PIL import Image
 
-BOX_RIGHT = 603               # borda direita do logo (60 px antes do divisor)
+BOX_LEFT = 103                # limite esquerdo da área do logo
+BOX_RIGHT = 603               # limite direito (60 px antes do divisor)
+CENTER_X = 384                # eixo: espelho do centro do logo Syndex em relação ao divisor (x = 664)
 BOX_MAX_W = 500               # largura máxima (mantém margem segura no recorte redondo)
 BOX_MAX_H = 140               # altura máxima (igual ao bloco do logo Syndex)
 CENTER_Y = 586                # centro vertical do logo Syndex
@@ -52,7 +55,8 @@ def main():
     logo = carregar_logo(logo_p)
     s = min(BOX_MAX_W / logo.width, BOX_MAX_H / logo.height)
     logo = logo.resize((max(1, round(logo.width * s)), max(1, round(logo.height * s))), Image.LANCZOS)
-    pos = (BOX_RIGHT - logo.width, CENTER_Y - logo.height // 2)
+    eixo = max(BOX_LEFT + logo.width / 2, min(CENTER_X, BOX_RIGHT - logo.width / 2))
+    pos = (round(eixo - logo.width / 2), CENTER_Y - logo.height // 2)
     base.alpha_composite(logo, pos)
     final = base.convert('RGB').resize((OUT_SIZE, OUT_SIZE), Image.LANCZOS)
     final.save(out_p, optimize=True)
